@@ -10,7 +10,6 @@ var  catalogRouter = require('./routes/catalog');
 
 var app = express();
 
-// ÉèÖÃ Mongoose Á¬½Ó
 const mongoose = require('mongoose');
 const mongoDB = 'mongodb://127.0.0.1/wangxuan';
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });

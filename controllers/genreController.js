@@ -41,7 +41,7 @@ exports.genre_detail = (req, res, next) => {
 };
 
 // 由 GET 显示创建类型的表单
-exports.genre_create_get = (req, res, next) => { 
+exports.genre_create_get = (req, res, next) => {
     res.render('genre_form', { title: 'Create Genre' });
 };
 
@@ -74,7 +74,7 @@ exports.genre_create_post = [
 ];
 
 // 由 GET 显示删除类型的表单
-exports.genre_delete_get = (req, res, next) => { 
+exports.genre_delete_get = (req, res, next) => {
     async.parallel({
         genre: function (callback) {
             Genre.findById(req.params.id).exec(callback);
@@ -93,7 +93,7 @@ exports.genre_delete_get = (req, res, next) => {
 };
 
 // 由 POST 处理类型删除操作
-exports.genre_delete_post = (req, res, next) => { 
+exports.genre_delete_post = (req, res, next) => {
     async.parallel({
         genre: function (callback) {
             Genre.findById(req.body.genreid).exec(callback)
@@ -112,15 +112,47 @@ exports.genre_delete_post = (req, res, next) => {
         else {
             // Genre has no books.
             Genre.findByIdAndRemove(req.body.genreid, function deleteGenre(err) {
-                if (err) { return next(err); }                
+                if (err) { return next(err); }
                 res.redirect('/catalog/genres')
             })
         }
     });
- };
+};
 
 // 由 GET 显示更新类型的表单
-exports.genre_update_get = (req, res) => { res.send('未实现：类型更新表单的 GET'); };
+exports.genre_update_get = (req, res, next) => {
+    async.parallel({
+        genre: function (callback) {
+            Genre.findById(req.params.id).exec(callback);
+        }
+    }, function (err, results) {
+        if (err) { return next(err); }
+        if (results.genre == null) {
+            var err = new Error('Genre not found');
+            err.status = 404;
+            return next(err);
+        }
+
+        res.render('genre_form', { title: 'Update Genre', genre: results.genre });
+    });
+};
 
 // 由 POST 处理类型更新操作
-exports.genre_update_post = (req, res) => { res.send('未实现：更新类型的 POST'); };
+exports.genre_update_post = [
+    body('name', 'Genre name required').isLength({ min: 1 }).trim(),
+    sanitizeBody('name').trim().escape(),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        var genre = new Genre({ name: req.body.name, _id:req.params.id });
+        if (!errors.isEmpty()) {
+            res.render('genre_form', { title: 'Update Genre', genre: genre, errors: errors.array() });
+            return;
+        }
+        else {
+            Genre.findByIdAndUpdate(req.params.id, genre, {}, function(err, thegenre){
+                if (err) { return next(err); }
+                res.redirect(thegenre.url);
+            });              
+        }
+    }
+];
