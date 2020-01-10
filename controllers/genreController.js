@@ -41,10 +41,37 @@ exports.genre_detail = (req, res, next) => {
 };
 
 // 由 GET 显示创建类型的表单
-exports.genre_create_get = (req, res) => { res.send('未实现：类型创建表单的 GET'); };
+exports.genre_create_get = (req, res, next) => { 
+    res.render('genre_form', { title: 'Create Genre' });
+};
 
 // 由 POST 处理类型创建操作
-exports.genre_create_post = (req, res) => { res.send('未实现：创建类型的 POST'); };
+exports.genre_create_post = [
+    body('name', 'Genre name required').isLength({ min: 1 }).trim(),
+    sanitizeBody('name').trim().escape(),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        var genre = new Genre({ name: req.body.name });
+        if (!errors.isEmpty()) {
+            res.render('genre_form', { title: 'Create Genre', genre: genre, errors: errors.array() });
+            return;
+        }
+        else {
+            Genre.findOne({ 'name': req.body.name })
+                .exec(function (err, found_genre) {
+                    if (err) { return next(err); }
+                    if (found_genre) {
+                        res.redirect(found_genre.url);
+                    } else {
+                        genre.save(function (err) {
+                            if (err) { return next(err); }
+                            res.redirect(genre.url);
+                        });
+                    }
+                });
+        }
+    }
+];
 
 // 由 GET 显示删除类型的表单
 exports.genre_delete_get = (req, res) => { res.send('未实现：类型删除表单的 GET'); };
