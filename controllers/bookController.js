@@ -17,7 +17,7 @@ exports.index = function (req, res) {
             BookInstance.count({}, callback);
         },
         book_instance_available_count: function (callback) {
-            BookInstance.count({ status: 'Available' }, callback);
+            BookInstance.count({ status: 'KJY' }, callback);
         },
         author_count: function (callback) {
             Author.count({}, callback);
@@ -158,10 +158,45 @@ exports.book_create_post = [
 
 // 由 GET 显示删除书籍的表单
 // Display Author delete form on GET.
-exports.book_delete_get = function(req, res, next) {res.send('未实现：书籍更新表单的 GET');};
+exports.book_delete_get = function (req, res, next) {
+    async.parallel({
+        book: function (callback) {
+            Book.findById(req.params.id).exec(callback);
+        },
+        book_instances: function (callback) {
+            BookInstance.find({ 'book': req.params.id }).exec(callback);
+        }
+    }, function (err, results) {
+        if (err) { return next(err); }
+        if(results.book == null ) {
+            res.redirect('/catalog/books');
+        }
+            res.render('book_delete', { title: 'Delete Book', book: results.book, book_instances: results.book_instances });
+    });
+};
 
 // 由 POST 处理书籍删除操作
-exports.book_delete_post = function(req, res, next) {res.send('未实现：书籍更新表单的 GET');};
+exports.book_delete_post = function (req, res, next) {
+    async.parallel({
+        book: function (callback) {
+            Book.findById(req.body.bookid).exec(callback);
+        },
+        book_instances: function (callback) {
+            BookInstance.find({ 'book': req.body.bookid }).populate('book').exec(callback);
+        }
+    }, function (err, results) {
+        if (err) { return next(err); }
+        if (results.book_instances.length > 0) {
+            res.render('book_delete', { title: 'Delete Book', book: results.book, book_instances: results.book_instances });
+            return;
+        } else {
+            Book.findByIdAndRemove(req.body.bookid, function deleteBook(err) {
+                if (err) { return next(err); }
+                res.redirect('/catalog/books');
+            });
+        }
+    });
+};
 
 // 由 GET 显示更新书籍的表单
 exports.book_update_get = (req, res) => { res.send('未实现：书籍更新表单的 GET'); };

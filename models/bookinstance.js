@@ -3,10 +3,8 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const BookInstanceSchema = new Schema({
-    // ָ����ز��������
-    book: { type: Schema.Types.ObjectId, ref: 'Book', required: true },
-    // ������
+const BookInstanceSchema = new Schema({    
+    book: { type: Schema.Types.ObjectId, ref: 'Book', required: true },   
     imprint: { type: String, required: true },
     status: {
         type: String,
@@ -29,5 +27,4 @@ BookInstanceSchema
     .get(function () {
         return moment(this.due_back).format('MMMM Do, YYYY');
     });
-    
 module.exports = mongoose.model('BookInstance', BookInstanceSchema);

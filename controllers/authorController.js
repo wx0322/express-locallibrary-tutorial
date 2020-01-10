@@ -98,11 +98,11 @@ exports.author_delete_get = function (req, res, next) {
 
     async.parallel({
         author: function (callback) {
-            Author.findById(req.params.id).exec(callback)
+            Author.findById(req.params.id).exec(callback);
         },
         authors_books: function (callback) {
-            Book.find({ 'author': req.params.id }).exec(callback)
-        },
+            Book.find({ 'author': req.params.id }).exec(callback);
+        }
     }, function (err, results) {
         if (err) { return next(err); }
         if (results.author == null) { // No results.
